@@ -1,0 +1,175 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+enum City {
+  YANGON
+  MANDALAY
+}
+enum Currency {
+  MMK
+  THB
+}
+enum Intent {
+  BUY
+  SELL
+  RENT
+}
+enum PropertyType {
+  APARTMENT
+  HOUSE
+  CONDO
+  LAND
+  OFFICE
+  SHOP
+  OTHER
+}
+enum ListingStatus {
+  DRAFT
+  PUBLISHED
+  PAUSED
+  REJECTED
+  DELETED
+}
+enum InquiryStatus {
+  NEW
+  READ
+  RESPONDED
+  ARCHIVED
+}
+enum ReportStatus {
+  OPEN
+  REVIEWED
+  DISMISSED
+}
+
+model User {
+  id String @id @default(cuid())
+  name String
+  email String @unique
+  passwordHash String
+  role Role @default(USER)
+  status UserStatus @default(ACTIVE)
+  profile Profile?
+  listings Listing[]
+  savedListings SavedListing[]
+  inquiries Inquiry[]
+  reports Report[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Profile {
+  id String @id @default(cuid())
+  userId String @unique
+  phone String?
+  preferredContact String?
+  avatarUrl String?
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Listing {
+  id String @id @default(cuid())
+  ownerId String
+  owner User @relation(fields: [ownerId], references: [id])
+  intent Intent
+  status ListingStatus @default(DRAFT)
+  title String
+  description String
+  propertyType PropertyType
+  city City
+  township String
+  addressText String?
+  priceAmount Decimal
+  currency Currency
+  bedrooms Int?
+  bathrooms Int?
+  areaValue Float?
+  areaUnit String?
+  images ListingImage[]
+  amenities ListingAmenity[]
+  savedBy SavedListing[]
+  inquiries Inquiry[]
+  reports Report[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  publishedAt DateTime?
+  @@index([city, intent, status])
+  @@index([currency, priceAmount])
+  @@index([ownerId])
+  @@index([createdAt])
+}
+
+model ListingImage {
+  id String @id @default(cuid())
+  listingId String
+  url String
+  storageKey String?
+  sortOrder Int @default(0)
+  altText String?
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model Amenity {
+  id String @id @default(cuid())
+  name String @unique
+  listings ListingAmenity[]
+}
+
+model ListingAmenity {
+  listingId String
+  amenityId String
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  amenity Amenity @relation(fields: [amenityId], references: [id], onDelete: Cascade)
+  @@id([listingId, amenityId])
+}
+
+model SavedListing {
+  userId String
+  listingId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  @@id([userId, listingId])
+}
+
+model Inquiry {
+  id String @id @default(cuid())
+  senderId String
+  listingId String
+  message String
+  contactPreference String
+  status InquiryStatus @default(NEW)
+  sender User @relation(fields: [senderId], references: [id])
+  listing Listing @relation(fields: [listingId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([senderId])
+  @@index([listingId])
+}
+
+model Report {
+  id String @id @default(cuid())
+  reporterId String
+  listingId String
+  reason String
+  details String?
+  status ReportStatus @default(OPEN)
+  reporter User @relation(fields: [reporterId], references: [id])
+  listing Listing @relation(fields: [listingId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
