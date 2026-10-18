@@ -49,6 +49,7 @@ The seed creates a demo account: `demo@property.test` / `Password123!`. Use it o
 - `/api/v1/auth/*` — registration, login, logout, current user
 - `/api/v1/listings` — public search/details and authenticated listing management
 - `/api/v1/me/saved-listings` — saved listings
+- `/api/v1/me/listings` — the signed-in user's non-deleted listings
 - `/api/v1/listings/:listingId/save` — save/unsave a listing
 - `/api/v1/listings/:listingId/inquiries` and `/api/v1/me/inquiries` — inquiries
 - `/api/v1/listings/:listingId/reports` — listing reports
